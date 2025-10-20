@@ -3,7 +3,7 @@ name: Java App CI/CD Pipeline
 on:
   push:
     branches:
-      - staging  # or main, depending on your branch
+      - main  # or main, depending on your branch
 
 jobs:
   build:
