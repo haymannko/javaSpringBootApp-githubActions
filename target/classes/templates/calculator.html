@@ -1,0 +1,70 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #f0f0f0;
+        }
+        .calculator {
+            display: inline-block;
+            background: #dde1e7;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input[type="text"] {
+            width: 210px;
+            height: 40px;
+            font-size: 20px;
+            margin-bottom: 10px;
+            text-align: right;
+        }
+        .buttons button {
+            width: 50px;
+            height: 50px;
+            margin: 5px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+<h2>Java Calculator</h2>
+<div class="calculator">
+    <form method="post">
+        <input type="text" name="expression" th:value="${expression}" readonly><br>
+        <div class="buttons">
+            <div>
+                <button type="submit" name="button" value="7">7</button>
+                <button type="submit" name="button" value="8">8</button>
+                <button type="submit" name="button" value="9">9</button>
+                <button type="submit" name="button" value="+">+</button>
+            </div>
+            <div>
+                <button type="submit" name="button" value="4">4</button>
+                <button type="submit" name="button" value="5">5</button>
+                <button type="submit" name="button" value="6">6</button>
+                <button type="submit" name="button" value="-">-</button>
+            </div>
+            <div>
+                <button type="submit" name="button" value="1">1</button>
+                <button type="submit" name="button" value="2">2</button>
+                <button type="submit" name="button" value="3">3</button>
+                <button type="submit" name="button" value="*">*</button>
+            </div>
+            <div>
+                <button type="submit" name="button" value="0">0</button>
+                <button type="submit" name="button" value="C">C</button>
+                <button type="submit" name="button" value="=">=</button>
+                <button type="submit" name="button" value="/">/</button>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
