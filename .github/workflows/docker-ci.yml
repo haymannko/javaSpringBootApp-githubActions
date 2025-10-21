@@ -54,7 +54,7 @@ jobs:
 
       - name: Deploy and Restart Service
         run: |
-          scp -i ~/.ssh/pemkey.pem /target/calculator-1.0.jar ${{ secrets.SSH_USER }}@{{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
+          scp -i ~/.ssh/pemkey.pem /home/ubuntu/target/calculator-1.0.jar ${{ secrets.SSH_USER }}@{{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
             echo "🚀 Updating server and preparing environment..."
@@ -63,7 +63,7 @@ jobs:
 
             echo "🧹 Cleaning up and deploying new JAR..."
             sudo mkdir -p /opt/myapp
-            sudo cp /target/calculator-1.0.jar /opt/myapp/myapp.jar
+            sudo cp /home/ubuntu/target/calculator-1.0.jar /opt/myapp/myapp.jar
             sudo chown appuser:appuser /opt/myapp/myapp.jar
             sudo chmod 644 /opt/myapp/myapp.jar
 
