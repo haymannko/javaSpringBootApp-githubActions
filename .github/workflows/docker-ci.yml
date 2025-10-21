@@ -54,7 +54,7 @@ jobs:
 
       - name: Deploy and Restart Service
         run: |
-          scp -i ~/.ssh/pemkey.pem target/*.jar ${{ secrets.SSH_USER }}@{{ secrets.SSH_HOST }}:/tmp/calculator.jar
+          scp -i ~/.ssh/pemkey.pem target/calculator.jar ${{ secrets.SSH_USER }}@{{ secrets.SSH_HOST }}:/tmp/calculator.jar
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
             echo "🚀 Updating server and preparing environment..."
