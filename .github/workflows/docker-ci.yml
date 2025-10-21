@@ -55,7 +55,7 @@ jobs:
       - name: Deploy and Restart Service
         run: |
           echo "🚀 Copying JAR to server..."
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem target/calculator-1.0.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/calculator-1.0.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
 
           echo "🔁 Running remote deployment..."
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
