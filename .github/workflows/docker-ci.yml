@@ -1,6 +1,5 @@
 name: Java CI/CD Pipeline
 
-
 on:
   push:
     branches: ["main"]
@@ -23,7 +22,7 @@ jobs:
           java-version: 17
 
       - name: Build project with Maven
-        run: | 
+        run: |
           mvn clean install -DskipTests
 
       - name: Upload built JAR
@@ -42,7 +41,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: calculator-jar
-          path: ./target
+          path: .
 
       - name: Set up SSH key for Z.com VPS
         run: |
@@ -53,31 +52,76 @@ jobs:
 
       - name: Deploy and Restart Service
         run: |
-          echo " Copying JAR to server ..."
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }}:/tmp/calculator-1.0.jar
+          echo "🚀 Copying JAR to server..."
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
 
-          echo "🚀 Running remote deployment..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }} << 'EOF'
+
+          echo "🔧 Running remote deployment..."
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-            echo "🔧 Updating server and preparing environment..."
-            sudo apt update -y
-            sudo apt install -y openjdk-17-jdk maven
 
-            echo "🧹 Cleaning up and deploying new JAR..."
+            echo "🧰 Installing dependencies..."
+            sudo apt update -y
+            sudo apt install -y openjdk-17-jdk
+
+            echo "📦 Deploying new JAR..."
             sudo mkdir -p /opt/myapp
             sudo mv /tmp/calculator-1.0.jar /opt/myapp/myapp.jar
-            sudo chown appuser:appuser /opt/myapp/myapp.jar
             sudo chmod 644 /opt/myapp/myapp.jar
+
+
+            echo "👤 Setting permissions..."
+            if ! id "appuser" &>/dev/null; then
+              sudo useradd -r -s /bin/false appuser
+            fi
+            sudo chown appuser:appuser /opt/myapp/myapp.jar
+
+            echo "⚙️ Creating systemd services..."
+
+            # javasimple.service
+            sudo bash -c 'cat > /etc/systemd/system/javasimple.service <<EOL
+[Unit]
+Description=Java Simple Service
+After=network.target
+
+[Service]
+User=appuser
+ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL'
+
+            # javaforking.service
+            sudo bash -c 'cat > /etc/systemd/system/javaforking.service <<EOL
+[Unit]
+Description=Java Forking Service
+After=network.target
+
+
+[Service]
+Type=forking
+User=appuser
+ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL'
 
             echo "🔁 Reloading and restarting services..."
             sudo systemctl daemon-reload
+            sudo systemctl enable javasimple.service
+            sudo systemctl enable javaforking.service
             sudo systemctl restart javasimple.service
             sudo systemctl restart javaforking.service
 
-            echo "✅ Deployment complete. Checking status..."
+
+            echo "✅ Deployment complete!"
             sudo systemctl status javasimple.service --no-pager
             sudo systemctl status javaforking.service --no-pager
-            echo "📜 Showing latest logs..."
-            sudo journalctl -n 30 -u javasimple.service --no-pager
-            sudo journalctl -n 30 -u javaforking.service --no-pager
           EOF
