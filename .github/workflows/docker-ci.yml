@@ -74,7 +74,7 @@ jobs:
             sudo chown appuser:appuser /opt/myapp/myapp.jar
 
             echo "📝 Creating javasimple.service..."
-            sudo tee /etc/systemd/system/javasimple.service > /dev/null <<'EOL'
+            sudo bash -c 'cat > /etc/systemd/system/javasimple.service <<EOL
 [Unit]
 Description=Java Simple Service
 After=network.target
@@ -88,10 +88,10 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-EOL
+EOL'
 
             echo "📝 Creating javaforking.service..."
-            sudo tee /etc/systemd/system/javaforking.service > /dev/null <<'EOL'
+            sudo bash -c 'cat > /etc/systemd/system/javaforking.service <<EOL
 [Unit]
 Description=Java Forking Service
 After=network.target
@@ -105,7 +105,7 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-EOL
+EOL'
 
             echo "🔁 Reloading and restarting services..."
             sudo systemctl daemon-reload
