@@ -53,10 +53,10 @@ jobs:
       - name: Deploy and Restart Services
         run: |
           echo "🚀 Copying JAR to server..."
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_SSH_HOST }}:/tmp/calculator-1.0.jar
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }}:/tmp/calculator-1.0.jar
 
           echo "🔧 Running remote deployment..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_SSH_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }} << 'EOF'
             set -e
 
             echo "🧰 Installing dependencies..."
