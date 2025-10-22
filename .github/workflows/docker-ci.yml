@@ -49,8 +49,7 @@ jobs:
           chmod 600 ~/.ssh/pemkey.pem
           ssh-keyscan -H ${{ secrets.ZOOM_HOST }} >> ~/.ssh/known_hosts
 
-
-      - name: Deploy and Restart Services
+      - name: 🚀 Deploy and Restart Services
         run: |
           echo "🚀 Copying JAR to server..."
           scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }}:/tmp/calculator-1.0.jar
@@ -63,7 +62,6 @@ jobs:
             sudo apt update -y
             sudo apt install -y openjdk-17-jdk
 
-
             echo "📦 Deploying new JAR..."
             sudo mkdir -p /opt/myapp
             sudo mv /tmp/calculator-1.0.jar /opt/myapp/myapp.jar
@@ -75,40 +73,39 @@ jobs:
             fi
             sudo chown appuser:appuser /opt/myapp/myapp.jar
 
-            echo "Creating javasimple.service..."
+            echo "📝 Creating javasimple.service..."
             sudo tee /etc/systemd/system/javasimple.service > /dev/null <<'EOL'
-            [Unit]
-            Description=Java Simple Service
-            After=network.target
-            
-            [Service]
-            User=appuser
-            ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
-            SuccessExitStatus=143
-            Restart=on-failure
-            RestartSec=10
-            
-            [Install]
-            WantedBy=multi-user.target
-            EOL
+[Unit]
+Description=Java Simple Service
+After=network.target
 
-            echo "Creating javaforking.service..."
+[Service]
+User=appuser
+ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+            echo "📝 Creating javaforking.service..."
             sudo tee /etc/systemd/system/javaforking.service > /dev/null <<'EOL'
-            [Unit]
-            Description=Java Forking Service
-            After=network.target
-            
-            [Service]
-            Type=forking
-            User=appuser
-            ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
-            Restart=on-failure
-            RestartSec=10
-            
-            [Install]
-            WantedBy=multi-user.target
-            EOL
+[Unit]
+Description=Java Forking Service
+After=network.target
 
+[Service]
+Type=forking
+User=appuser
+ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOL
 
             echo "🔁 Reloading and restarting services..."
             sudo systemctl daemon-reload
@@ -116,6 +113,9 @@ jobs:
             sudo systemctl restart javasimple.service
             sudo systemctl enable javaforking.service
             sudo systemctl restart javaforking.service
+
+            echo "✅ Service statuses:"
             sudo systemctl status javasimple.service --no-pager
             sudo systemctl status javaforking.service --no-pager
           EOF
+
