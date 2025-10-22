@@ -79,7 +79,7 @@ jobs:
             echo "⚙️ Creating systemd services..."
 
             # javasimple.service
-            sudo bash -c "cat > /etc/systemd/system/javasimple.service <<EOL
+            sudo bash -c "cat > /etc/systemd/system/javasimple.service <<'EOL'
 [Unit]
 Description=Java Simple Service
 After=network.target
@@ -96,7 +96,7 @@ WantedBy=multi-user.target
 EOL"
 
             # javaforking.service
-            sudo bash -c "cat > /etc/systemd/system/javaforking.service <<EOL
+            sudo bash -c "cat > /etc/systemd/system/javaforking.service <<'EOL'
 [Unit]
 Description=Java Forking Service
 After=network.target
