@@ -75,7 +75,7 @@ jobs:
             fi
             sudo chown appuser:appuser /opt/myapp/myapp.jar
 
-            echo "⚙️ Creating javasimple.service..."
+            echo "Creating javasimple.service..."
             sudo tee /etc/systemd/system/javasimple.service > /dev/null <<'EOL'
             [Unit]
             Description=Java Simple Service
@@ -92,7 +92,7 @@ jobs:
             WantedBy=multi-user.target
             EOL
 
-            echo "⚙️ Creating javaforking.service..."
+            echo "Creating javaforking.service..."
             sudo tee /etc/systemd/system/javaforking.service > /dev/null <<'EOL'
             [Unit]
             Description=Java Forking Service
