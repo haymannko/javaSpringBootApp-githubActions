@@ -36,6 +36,9 @@ jobs:
     needs: build
 
     steps:
+      - name: Checkout repo (to get service files)
+        uses: actions/checkout@v4
+
       - name: Download built JAR
         uses: actions/download-artifact@v4
         with:
@@ -45,77 +48,53 @@ jobs:
       - name: Set up SSH key for Z.com VPS
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.ZOOM_SSH_KEY }}" > ~/.ssh/pemkey.pem
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/pemkey.pem
           chmod 600 ~/.ssh/pemkey.pem
-          ssh-keyscan -H ${{ secrets.ZOOM_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 🚀 Deploy and Restart Services
+      - name: Copy files to server and deploy
         run: |
-          echo "🚀 Copying JAR to server..."
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }}:/tmp/calculator-1.0.jar
+          # copy jar and service unit files to /tmp on the server
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./deploy/javasimple.service ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/javasimple.service
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./deploy/javaforking.service ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/javaforking.service
 
-          echo "🔧 Running remote deployment..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.ZOOM_SSH_USER }}@${{ secrets.ZOOM_HOST }} << 'EOF'
+          # run remote commands to move files into place, set permissions, reload systemd and restart services
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             set -e
-
-            echo "🧰 Installing dependencies..."
+            echo "Installing dependencies (if needed)..."
             sudo apt update -y
             sudo apt install -y openjdk-17-jdk
 
-            echo "📦 Deploying new JAR..."
+            echo "Deploying app JAR..."
             sudo mkdir -p /opt/myapp
             sudo mv /tmp/calculator-1.0.jar /opt/myapp/myapp.jar
             sudo chmod 644 /opt/myapp/myapp.jar
 
-            echo "👤 Setting permissions..."
-            if ! id "appuser" &>/dev/null; then
-              sudo useradd -r -s /bin/false appuser
+            # ensure appuser exists
+            if ! id -u appuser >/dev/null 2>&1; then
+              sudo useradd -r -s /usr/sbin/nologin appuser
             fi
             sudo chown appuser:appuser /opt/myapp/myapp.jar
 
-            echo "📝 Creating javasimple.service..."
-            sudo bash -c 'cat > /etc/systemd/system/javasimple.service <<EOL
-[Unit]
-Description=Java Simple Service
-After=network.target
+            echo "Installing systemd unit files..."
+            sudo mv /tmp/javasimple.service /etc/systemd/system/javasimple.service
+            sudo mv /tmp/javaforking.service /etc/systemd/system/javaforking.service
+            sudo chmod 644 /etc/systemd/system/javasimple.service
+            sudo chmod 644 /etc/systemd/system/javaforking.service
 
-[Service]
-User=appuser
-ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
-SuccessExitStatus=143
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOL'
-
-            echo "📝 Creating javaforking.service..."
-            sudo bash -c 'cat > /etc/systemd/system/javaforking.service <<EOL
-[Unit]
-Description=Java Forking Service
-After=network.target
-
-[Service]
-Type=forking
-User=appuser
-ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOL'
-
-            echo "🔁 Reloading and restarting services..."
+            echo "Reloading and restarting services..."
             sudo systemctl daemon-reload
-            sudo systemctl enable javasimple.service
-            sudo systemctl restart javasimple.service
-            sudo systemctl enable javaforking.service
-            sudo systemctl restart javaforking.service
+            sudo systemctl enable --now javasimple.service
+            sudo systemctl enable --now javaforking.service
 
-            echo "✅ Service statuses:"
-            sudo systemctl status javasimple.service --no-pager
-            sudo systemctl status javaforking.service --no-pager
+            echo "Service status (javasimple):"
+            sudo systemctl status javasimple.service --no-pager || true
+
+            echo "Service status (javaforking):"
+            sudo systemctl status javaforking.service --no-pager || true
+
+            echo "Last 50 lines javasimple logs:"
+            sudo journalctl -n 50 -u javasimple.service --no-pager || true
           EOF
 

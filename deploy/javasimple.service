@@ -1,0 +1,14 @@
+[Unit]
+Description=Java Simple Service
+After=network.target
+
+[Service]
+User=appuser
+ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+
