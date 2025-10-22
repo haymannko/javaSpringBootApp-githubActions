@@ -77,37 +77,37 @@ jobs:
 
             echo "⚙️ Creating javasimple.service..."
             sudo tee /etc/systemd/system/javasimple.service > /dev/null <<'EOL'
-[Unit]
-Description=Java Simple Service
-After=network.target
-
-[Service]
-User=appuser
-ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
-SuccessExitStatus=143
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOL
+            [Unit]
+            Description=Java Simple Service
+            After=network.target
+            
+            [Service]
+            User=appuser
+            ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar
+            SuccessExitStatus=143
+            Restart=on-failure
+            RestartSec=10
+            
+            [Install]
+            WantedBy=multi-user.target
+            EOL
 
             echo "⚙️ Creating javaforking.service..."
             sudo tee /etc/systemd/system/javaforking.service > /dev/null <<'EOL'
-[Unit]
-Description=Java Forking Service
-After=network.target
-
-[Service]
-Type=forking
-User=appuser
-ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
-Restart=on-failure
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOL
+            [Unit]
+            Description=Java Forking Service
+            After=network.target
+            
+            [Service]
+            Type=forking
+            User=appuser
+            ExecStart=/usr/bin/java -jar /opt/myapp/myapp.jar &
+            Restart=on-failure
+            RestartSec=10
+            
+            [Install]
+            WantedBy=multi-user.target
+            EOL
 
 
             echo "🔁 Reloading and restarting services..."
