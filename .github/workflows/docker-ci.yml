@@ -95,6 +95,13 @@ RestartSec=10
 WantedBy=multi-user.target
 EOL"
 
+            echo "🔁 Reloading and restarting service..."
+            sudo systemctl daemon-reload
+            sudo systemctl enable javasimple.service
+            sudo systemctl restart javasimple.service
+            sudo systemctl status javasimple.service --no-pager
+          EOF
+
             # javaforking.service
             sudo bash -c "cat > /etc/systemd/system/javaforking.service <<'EOL'
 [Unit]
@@ -115,13 +122,10 @@ EOL"
 
             echo "🔁 Reloading and restarting services..."
             sudo systemctl daemon-reload
-            sudo systemctl enable javasimple.service
-            sudo systemctl enable javaforking.service
-            sudo systemctl restart javasimple.service
+            sudo systemctl enable javaforking.servoce
             sudo systemctl restart javaforking.service
-
-
-            echo "✅ Deployment complete!"
-            sudo systemctl status javasimple.service --no-pager
             sudo systemctl status javaforking.service --no-pager
           EOF
+
+
+
