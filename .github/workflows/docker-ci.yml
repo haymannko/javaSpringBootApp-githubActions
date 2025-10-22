@@ -22,8 +22,7 @@ jobs:
           java-version: 17
 
       - name: Build project with Maven
-        run: |
-          mvn clean install -DskipTests
+        run: mvn clean install -DskipTests
 
       - name: Upload built JAR
         uses: actions/upload-artifact@v4
@@ -50,11 +49,11 @@ jobs:
           chmod 600 ~/.ssh/pemkey.pem
           ssh-keyscan -H ${{ secrets.ZOOM_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy and Restart Service
+
+      - name: Deploy and Restart Services
         run: |
           echo "🚀 Copying JAR to server..."
           scp -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ./target/*.jar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/calculator-1.0.jar
-
 
           echo "🔧 Running remote deployment..."
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/pemkey.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
@@ -64,11 +63,11 @@ jobs:
             sudo apt update -y
             sudo apt install -y openjdk-17-jdk
 
+
             echo "📦 Deploying new JAR..."
             sudo mkdir -p /opt/myapp
             sudo mv /tmp/calculator-1.0.jar /opt/myapp/myapp.jar
             sudo chmod 644 /opt/myapp/myapp.jar
-
 
             echo "👤 Setting permissions..."
             if ! id "appuser" &>/dev/null; then
@@ -76,9 +75,7 @@ jobs:
             fi
             sudo chown appuser:appuser /opt/myapp/myapp.jar
 
-            echo "⚙️ Creating systemd services..."
-
-            # javasimple.service
+            echo "⚙️ Creating javasimple.service..."
             sudo bash -c "cat > /etc/systemd/system/javasimple.service <<'EOL'
 [Unit]
 Description=Java Simple Service
@@ -95,19 +92,11 @@ RestartSec=10
 WantedBy=multi-user.target
 EOL"
 
-            echo "🔁 Reloading and restarting service..."
-            sudo systemctl daemon-reload
-            sudo systemctl enable javasimple.service
-            sudo systemctl restart javasimple.service
-            sudo systemctl status javasimple.service --no-pager
-          EOF
-
-            # javaforking.service
+            echo "⚙️ Creating javaforking.service..."
             sudo bash -c "cat > /etc/systemd/system/javaforking.service <<'EOL'
 [Unit]
 Description=Java Forking Service
 After=network.target
-
 
 [Service]
 Type=forking
@@ -120,12 +109,13 @@ RestartSec=10
 WantedBy=multi-user.target
 EOL"
 
+
             echo "🔁 Reloading and restarting services..."
             sudo systemctl daemon-reload
-            sudo systemctl enable javaforking.servoce
+            sudo systemctl enable javasimple.service
+            sudo systemctl restart javasimple.service
+            sudo systemctl enable javaforking.service
             sudo systemctl restart javaforking.service
+            sudo systemctl status javasimple.service --no-pager
             sudo systemctl status javaforking.service --no-pager
           EOF
-
-
-
